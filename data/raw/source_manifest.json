@@ -1,0 +1,28 @@
+{
+  "source_rows": 175784,
+  "rows_with_selected_labeled_departments": 38779,
+  "model_rows": 36805,
+  "departments": [
+    "Agriculture",
+    "Direct Taxes",
+    "Financial Services",
+    "Labour and Employment",
+    "Postal Services",
+    "Railways",
+    "Road Transport",
+    "Telecommunications"
+  ],
+  "department_counts": {
+    "Labour and Employment": 9458,
+    "Financial Services": 6272,
+    "Direct Taxes": 5978,
+    "Agriculture": 5220,
+    "Telecommunications": 3622,
+    "Postal Services": 3058,
+    "Railways": 2048,
+    "Road Transport": 1149
+  },
+  "source": "https://www.kaggle.com/datasets/ayushyajnik/government-of-india-grievance-report",
+  "license": "MIT as stated on the Kaggle dataset page",
+  "privacy": "The source files are explicitly named no_pii; this project does not attempt re-identification."
+}

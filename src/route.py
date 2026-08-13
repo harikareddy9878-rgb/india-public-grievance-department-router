@@ -1,4 +1,4 @@
-"""Route a grievance or send it to manual review."""
+"""Route a grievance to a department or an explicit manual review outcome."""
 
 from __future__ import annotations
 
@@ -7,22 +7,21 @@ from pathlib import Path
 import joblib
 
 ROOT = Path(__file__).resolve().parents[1]
-THRESHOLD = 0.62
 
 
-def route_grievance(text: str, threshold: float = THRESHOLD) -> dict:
-    clean = " ".join(text.split())
-    if len(clean) < 12:
-        return {"route": "Manual review", "confidence": 0.0, "reason": "Please provide more detail."}
+def route_grievance(text: str, threshold: float = 0.58) -> dict:
+    cleaned = " ".join(str(text or "").split())
+    if len(cleaned) < 25:
+        return {"route": "Manual review", "reason": "More detail is required."}
     model = joblib.load(ROOT / "models/grievance_router.joblib")
-    probabilities = model.predict_proba([clean])[0]
-    best_index = int(probabilities.argmax())
-    confidence = float(probabilities[best_index])
-    predicted = str(model.classes_[best_index])
+    probability = model.predict_proba([cleaned])[0]
+    best = int(probability.argmax())
+    suggestion = str(model.classes_[best])
+    confidence = float(probability[best])
     if confidence < threshold:
-        return {"route": "Manual review", "suggested_category": predicted, "confidence": round(confidence, 3), "reason": "The text is ambiguous or outside the learned examples."}
-    return {"route": predicted, "confidence": round(confidence, 3), "reason": "Highest model probability above the review threshold."}
-
-
-if __name__ == "__main__":
-    print(route_grievance("My phone order was marked delivered but I did not receive it. Please review this."))
+        return {
+            "route": "Manual review",
+            "suggested_department": suggestion,
+            "confidence": round(confidence, 3),
+        }
+    return {"route": suggestion, "confidence": round(confidence, 3)}

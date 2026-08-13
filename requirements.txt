@@ -2,6 +2,8 @@ scikit-learn==1.7.2
 joblib==1.5.2
 matplotlib==3.10.7
 reportlab==4.5.0
+pandas==2.3.3
+openpyxl==3.1.5
 pytest==8.4.2
 ruff==0.12.11
-
+certifi==2025.8.3

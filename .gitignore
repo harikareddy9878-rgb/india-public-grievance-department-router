@@ -4,4 +4,5 @@ __pycache__/
 .ruff_cache/
 *.pyc
 models/*.joblib
-
+data/raw/*.jsonl
+data/processed/grievances.csv

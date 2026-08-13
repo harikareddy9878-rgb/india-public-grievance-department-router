@@ -1,37 +1,63 @@
 {
-  "rows": 400,
-  "train_rows": 300,
-  "test_rows": 100,
-  "accuracy": 1.0,
-  "macro_f1": 1.0,
-  "mean_confidence": 0.745,
-  "review_threshold": 0.62,
-  "low_confidence_test_cases": 0,
+  "source_rows": 175784,
+  "model_rows": 36805,
+  "train_rows": 29444,
+  "test_rows": 7361,
+  "departments": 8,
+  "accuracy": 0.995,
+  "macro_f1": 0.995,
+  "review_threshold": 0.58,
+  "manual_review_rows": 187,
+  "automatic_coverage": 0.975,
+  "automatic_accuracy": 1.0,
   "class_metrics": {
-    "Appliances": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+    "Agriculture": {
+      "precision": 0.977,
+      "recall": 0.999,
+      "f1": 0.988,
+      "support": 1044
     },
-    "Banking": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+    "Direct Taxes": {
+      "precision": 0.999,
+      "recall": 0.997,
+      "f1": 0.998,
+      "support": 1195
     },
-    "Ecommerce": {
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+    "Financial Services": {
+      "precision": 0.999,
+      "recall": 0.988,
+      "f1": 0.994,
+      "support": 1254
     },
-    "Telecom": {
+    "Labour and Employment": {
       "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0
+      "recall": 0.995,
+      "f1": 0.998,
+      "support": 1892
     },
-    "Travel": {
-      "precision": 1.0,
+    "Postal Services": {
+      "precision": 0.993,
+      "recall": 0.997,
+      "f1": 0.995,
+      "support": 612
+    },
+    "Railways": {
+      "precision": 0.998,
+      "recall": 0.998,
+      "f1": 0.998,
+      "support": 410
+    },
+    "Road Transport": {
+      "precision": 0.996,
+      "recall": 0.991,
+      "f1": 0.993,
+      "support": 230
+    },
+    "Telecommunications": {
+      "precision": 0.999,
       "recall": 1.0,
-      "f1": 1.0
+      "f1": 0.999,
+      "support": 724
     }
   }
 }
