@@ -1,0 +1,37 @@
+{
+  "rows": 400,
+  "train_rows": 300,
+  "test_rows": 100,
+  "accuracy": 1.0,
+  "macro_f1": 1.0,
+  "mean_confidence": 0.745,
+  "review_threshold": 0.62,
+  "low_confidence_test_cases": 0,
+  "class_metrics": {
+    "Appliances": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "Banking": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "Ecommerce": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "Telecom": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "Travel": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  }
+}
