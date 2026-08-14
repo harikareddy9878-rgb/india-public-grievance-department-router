@@ -1,78 +1,171 @@
-"""Build the ten-page CivicRoute project report."""
-
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import cm
-from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from report_template import build_research_report
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "reports/CivicRoute_Service_Request_Triage_Report.pdf"
-NAVY = colors.HexColor("#20324c")
-PURPLE = colors.HexColor("#6d4fa3")
-PALE = colors.HexColor("#f1edf8")
-
-
-def footer(canvas, document):
-    canvas.saveState()
-    canvas.setFont("Helvetica", 8)
-    canvas.setFillColor(colors.HexColor("#667085"))
-    canvas.drawString(2 * cm, 1.1 * cm, "CivicRoute Service Request Triage")
-    canvas.drawRightString(19 * cm, 1.1 * cm, f"Page {document.page}")
-    canvas.restoreState()
+FIGURES = ROOT / "reports/figures"
 
 
 def build_report() -> Path:
     metrics = json.loads((ROOT / "data/processed/evaluation.json").read_text())
-    manifest = json.loads((ROOT / "data/raw/source_manifest.json").read_text())
-    styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="CoverTitle", parent=styles["Title"], fontSize=29, leading=34, textColor=NAVY, alignment=TA_CENTER, spaceAfter=18))
-    styles.add(ParagraphStyle(name="Section", parent=styles["Heading1"], fontSize=19, leading=24, textColor=NAVY, spaceAfter=13))
-    styles.add(ParagraphStyle(name="BodyR", parent=styles["BodyText"], fontSize=10, leading=15, textColor=colors.HexColor("#343b48"), spaceAfter=9))
-    doc = SimpleDocTemplate(str(OUTPUT), pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm, topMargin=1.8 * cm, bottomMargin=1.8 * cm, title="CivicRoute Service Request Triage", author="Harika")
-    story = []
-    table_style = TableStyle([("BACKGROUND", (0, 0), (-1, 0), NAVY), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d7d0e4")), ("VALIGN", (0, 0), (-1, -1), "TOP"), ("PADDING", (0, 0), (-1, -1), 7)])
-    story.extend([Spacer(1, 3 * cm), Paragraph("CivicRoute<br/>Service Request Triage", styles["CoverTitle"]), Paragraph("Interpretable NLP, harder holdout evaluation, and manual review", ParagraphStyle(name="CoverSub", parent=styles["BodyR"], fontSize=14, leading=20, textColor=PURPLE, alignment=TA_CENTER)), Spacer(1, 1.2 * cm), Table([["Project type", "Applied NLP"], ["Source records", f"{metrics['source_rows']:,}"], ["Prepared rows", f"{metrics['model_rows']:,}"], ["Prepared by", "Harika"]], colWidths=[4 * cm, 9 * cm], style=TableStyle([("BACKGROUND", (0, 0), (0, -1), PALE), ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"), ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d7d0e4")), ("PADDING", (0, 0), (-1, -1), 9)])), PageBreak()])
-
     sections = [
-        ("1. Executive summary", [f"CivicRoute prepares {metrics['source_rows']:,} source records into {metrics['model_rows']:,} labelled and deduplicated service requests across eight queues.", f"A standard random holdout reaches {metrics['macro_f1']:.3f} macro F1. A harder split that excludes complete category codes from training reaches {metrics['category_holdout_macro_f1']:.3f} macro F1 on {metrics['category_holdout_rows']:,} requests.", f"At the {metrics['review_threshold']:.2f} threshold, the harder split routes {metrics['category_holdout_automatic_coverage']:.1%} automatically and accepted suggestions reach {metrics['category_holdout_automatic_accuracy']:.1%} accuracy in this snapshot."]),
-        ("2. Problem and purpose", ["Citizens describe service problems in free text while service teams organise work into structured queues. That mismatch can create avoidable transfers and slow the first response.", "The project asks whether a compact, interpretable model can suggest a useful first queue without hiding uncertainty.", "The output is a triage aid. It does not file a complaint, validate facts, determine priority or legal rights, or replace an official portal."]),
-        ("3. Source and privacy boundary", ["The source is the Government of India complaint corpus published on Kaggle as a grievance report. The dataset page states an MIT licence and provides a category mapping workbook.", "Grievance is the source system's formal term for a complaint or service request. CivicRoute uses clearer service-request language in its interface while preserving the original term in provenance notes.", "The source file is named no_pii_grievance.json, but complaint text can still contain details entered by a citizen. Prepared text is therefore not published in Git or exposed as a searchable corpus."]),
-        ("4. Preparation pipeline", [f"The acquisition script maps category codes to organisations, selects eight well-represented service queues, removes insufficient text, cleans repeated redaction markers, and drops exact duplicate complaint text. {manifest['rows_with_selected_service_queues']:,} rows pass selection before deduplication.", "The model table keeps a project identifier, request text, queue, organisation code, category code, and category description. Generated raw and prepared text files stay outside Git.", "Queue counts are imbalanced, so the classifier uses class weights and evaluation reports macro F1 alongside accuracy."]),
+        {
+            "title": "Project overview and problem statement",
+            "paragraphs": [
+                "CivicRoute reads a written public service request and suggests one of eight service queues. I built it because free-text requests and structured administrative queues do not naturally match, which can create transfers and delay a first response.",
+                "The system is an interpretable triage experiment. It does not file a complaint, validate the facts, decide priority or legal rights, or replace an official portal. Low-confidence and very short messages are retained for manual review.",
+            ],
+        },
+        {
+            "title": "Source, privacy and preparation",
+            "paragraphs": [
+                "The source is a 175,784-record Government of India complaint corpus published on Kaggle with an MIT licence and a category mapping workbook. The source system uses the formal word grievance; the project interface uses service request because it is clearer.",
+                "I map category codes to organisations, select eight well-represented queues, remove insufficient text, clean repeated redaction markers, and remove exact duplicate request text. The prepared table contains 36,805 rows. Generated text is excluded from Git because de-identified requests can still contain details entered by a citizen.",
+            ],
+            "table": [
+                ["Service queue", "Prepared rows"],
+                ["Labour and Employment", "9,458"],
+                ["Financial Services", "6,272"],
+                ["Direct Taxes", "5,978"],
+                ["Agriculture", "5,220"],
+                ["Telecommunications", "3,622"],
+                ["Postal Services", "3,058"],
+                ["Railways", "2,048"],
+                ["Road Transport", "1,149"],
+            ],
+        },
+        {
+            "title": "Model and evaluation design",
+            "paragraphs": [
+                "The pipeline uses TF-IDF unigrams and bigrams with class-balanced logistic regression. The saved pipeline contains both text transformation and classification. Predictions below 0.58 confidence are not routed automatically.",
+                "A random stratified holdout measures new rows from familiar administrative categories. A harder category-group holdout keeps complete category codes out of training and is the headline generalisation test. This reduces the benefit of category-specific language shared between training and test rows.",
+            ],
+        },
+        {
+            "title": "Experiment 1: holdout comparison",
+            "figure": FIGURES / "01_holdout_comparison.png",
+            "caption": "Figure 1. Macro F1 under random and category-group holdouts.",
+            "explanation": [
+                [
+                    "What I tested",
+                    "Whether the model still works when complete administrative category codes are unseen during training.",
+                ],
+                [
+                    "What the graph shows",
+                    f"Macro F1 falls from {metrics['macro_f1']:.3f} on the random holdout to {metrics['category_holdout_macro_f1']:.3f} on the harder split.",
+                ],
+                [
+                    "Conclusion",
+                    "The random split is optimistic; the category-group result is the more credible headline measure.",
+                ],
+            ],
+        },
+        {
+            "title": "Experiment 2: confidence review",
+            "figure": FIGURES / "02_review_coverage.png",
+            "caption": "Figure 2. Automatic routing and manual-review shares on the category-group holdout.",
+            "explanation": [
+                [
+                    "What I tested",
+                    "How much work is accepted automatically at the 0.58 confidence threshold.",
+                ],
+                [
+                    "What the graph shows",
+                    "84.8 percent is automatically routed and 15.2 percent is retained for review.",
+                ],
+                [
+                    "Conclusion",
+                    "The model exposes uncertainty rather than forcing every request into a queue.",
+                ],
+            ],
+        },
+        {
+            "title": "Experiment 3: queue distribution",
+            "figure": FIGURES / "03_queue_distribution.png",
+            "caption": "Figure 3. Prepared examples across the eight service queues.",
+            "explanation": [
+                ["What I tested", "Whether the training labels are balanced across queues."],
+                [
+                    "What the graph shows",
+                    "Labour and Employment has more than eight times the rows of Road Transport.",
+                ],
+                [
+                    "Conclusion",
+                    "Class balancing and macro F1 are necessary; accuracy alone would understate minority-queue risk.",
+                ],
+            ],
+        },
+        {
+            "title": "Experiment 4: class-level F1",
+            "figure": FIGURES / "04_class_f1.png",
+            "caption": "Figure 4. Random-holdout F1 for each service queue.",
+            "explanation": [
+                ["What I tested", "Whether one aggregate score hides a weak service queue."],
+                [
+                    "What the graph shows",
+                    "All eight random-holdout F1 values are high, with Agriculture the lowest at 0.988.",
+                ],
+                [
+                    "Conclusion",
+                    "Class-level performance is strong on familiar categories, but this does not replace the harder grouped evaluation.",
+                ],
+            ],
+        },
+        {
+            "title": "Experiment 5: confidence and accuracy",
+            "figure": FIGURES / "05_confidence_accuracy.png",
+            "caption": "Figure 5. Overall and accepted-route accuracy under both holdouts.",
+            "explanation": [
+                [
+                    "What I tested",
+                    "Whether manual review improves the reliability of automatically accepted suggestions.",
+                ],
+                [
+                    "What the graph shows",
+                    "Accepted-route accuracy reaches 99.9 percent on the grouped holdout while coverage is 84.8 percent.",
+                ],
+                [
+                    "Conclusion",
+                    "The threshold creates a useful accuracy-coverage trade-off, but it cannot detect every confidently wrong request.",
+                ],
+            ],
+        },
+        {
+            "title": "Results and interpretation",
+            "paragraphs": [
+                f"The random holdout contains {metrics['test_rows']:,} rows and reaches {metrics['accuracy']:.1%} accuracy with macro F1 {metrics['macro_f1']:.3f}. The category-group holdout contains {metrics['category_holdout_rows']:,} rows from {metrics['category_holdout_categories']} unseen category codes and reaches {metrics['category_holdout_accuracy']:.1%} accuracy with macro F1 {metrics['category_holdout_macro_f1']:.3f}.",
+                "At the selected threshold, grouped automatic coverage is 84.8 percent and accepted-route accuracy is 99.9 percent in this snapshot. This result is not a claim about every future organisation, language, emergency request, or taxonomy.",
+            ],
+        },
+        {
+            "title": "Limitations, governance and reproducibility",
+            "paragraphs": [
+                "The corpus is historical and English-dominant. Administrative taxonomies change, similar language can occur across queues, and compound requests may require multiple owners. The system does not detect urgency, malicious content, or sensitive information reliably.",
+                "The repository versions acquisition, preparation, both evaluation splits, threshold behaviour, tests, five figures, the model card, and this report. Future work should add time-based validation, independently written and multilingual requests, queue-specific thresholds, drift monitoring, emergency detection, and a secure reviewer interface.",
+            ],
+        },
+        {
+            "title": "Conclusion",
+            "paragraphs": [
+                "CivicRoute demonstrates an interpretable and measurable approach to service-request triage. The central result is not the near-perfect random split; it is the deliberate use of a harder unseen-category split and a visible manual-review path. The project shows how NLP evaluation, class imbalance, confidence thresholds, privacy boundaries, and governance fit together in a student-scale system."
+            ],
+        },
     ]
-    for title, paragraphs in sections:
-        story.append(Paragraph(title, styles["Section"]))
-        for paragraph in paragraphs:
-            story.append(Paragraph(paragraph, styles["BodyR"]))
-        if title.startswith("4."):
-            story.append(Table([["Service queue", "Prepared rows"]] + [[name, f"{count:,}"] for name, count in manifest["service_queue_counts"].items()], colWidths=[9 * cm, 4 * cm], style=table_style))
-        story.append(PageBreak())
-
-    story.extend([Paragraph("5. Evaluation dashboard", styles["Section"]), Image(str(ROOT / "evidence/routing_evaluation.png"), width=17 * cm, height=6.8 * cm), Spacer(1, 0.35 * cm), Table([["Evaluation", "Rows", "Macro F1"], ["Random holdout", f"{metrics['test_rows']:,}", f"{metrics['macro_f1']:.3f}"], ["Category-group holdout", f"{metrics['category_holdout_rows']:,}", f"{metrics['category_holdout_macro_f1']:.3f}"]], colWidths=[7 * cm, 3 * cm, 3 * cm], style=table_style), Paragraph("The confusion matrix shows performance across all eight queues. The confidence plot shows which requests are accepted and which are retained for manual review.", styles["BodyR"]), PageBreak()])
-
-    final = [
-        ("6. Language model", ["TF-IDF represents unigrams and bigrams while reducing the influence of generic repeated words. The vocabulary is capped so the complete workflow remains practical on a student laptop.", "Class-balanced logistic regression returns one probability per service queue and allows influential terms to be inspected. Text preparation and classification are stored as one reproducible pipeline.", "This design is smaller, cheaper, and easier to explain than using a general-purpose language model for a fixed eight-queue task."], None),
-        ("7. Confidence and manual review", [f"Requests below {metrics['review_threshold']:.2f} confidence are not routed automatically. The best suggestion remains visible as supporting information for a reviewer.", "Messages shorter than 25 characters are sent to review before model inference. Multi-topic, emergency, personally identifying, and unfamiliar requests should also be reviewed.", "A confidence threshold cannot detect every confidently wrong result. It must be recalibrated when queues, vocabulary, or source systems change."], [["Harder holdout measure", "Result"], ["Automatic coverage", f"{metrics['category_holdout_automatic_coverage']:.1%}"], ["Accepted-route accuracy", f"{metrics['category_holdout_automatic_accuracy']:.1%}"], ["Unseen category codes", f"{metrics['category_holdout_categories']}"]]),
-        ("8. Evaluation interpretation", ["The random split is useful for comparison but can be optimistic when training and test rows share administrative category language.", "The category-group holdout keeps complete category codes out of training. Its lower score is a more credible measure of how the model handles less familiar request types and is therefore the headline result.", "The corpus is still English-dominant and historical. Future evaluation should include time-based splits, near-duplicate detection, independently written samples, and multilingual requests."], None),
-        ("9. Governance, reproducibility, and next steps", ["The repository documents source, licence, privacy boundary, included queues, both evaluation splits, threshold, limitations, and the official CPGRAMS link.", "Acquisition, preparation, training, inference, evidence generation, tests, and this report are versioned. The README provides the full rebuild sequence.", "Next steps are queue-specific thresholds, drift monitoring, multilingual evaluation, a reviewer interface, emergency-message detection, and strict retention controls for request text."], [["Risk", "Control"], ["Wrong automatic queue", "Confidence threshold and human review"], ["Overstated evaluation", "Category-group holdout as headline result"], ["Privacy exposure", "Generated request text excluded from Git"], ["Taxonomy drift", "Version mappings and reevaluate"]]),
-    ]
-    for title, paragraphs, rows in final:
-        story.append(Paragraph(title, styles["Section"]))
-        for paragraph in paragraphs:
-            story.append(Paragraph(paragraph, styles["BodyR"]))
-        if rows:
-            story.append(Table(rows, colWidths=[6 * cm, 8 * cm], style=table_style))
-        if not title.startswith("9."):
-            story.append(PageBreak())
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    doc.build(story, onFirstPage=footer, onLaterPages=footer)
-    return OUTPUT
+    return build_research_report(
+        OUTPUT,
+        "CivicRoute Service Request Triage",
+        "Harika",
+        [
+            "This report presents an interpretable text-classification project for first-level public service-request triage. I prepared 36,805 labelled and deduplicated requests from 175,784 source records, trained a class-balanced TF-IDF logistic-regression pipeline, and added confidence-based manual review.",
+            "A random holdout reached 0.995 macro F1. A harder holdout that excluded complete category codes from training reached 0.974 macro F1 on 12,789 requests. Five experiments examine generalisation, confidence coverage, label imbalance, class-level performance, and accepted-route accuracy.",
+        ],
+        "text classification; service requests; grouped validation; confidence threshold; human review",
+        sections,
+    )
 
 
 if __name__ == "__main__":

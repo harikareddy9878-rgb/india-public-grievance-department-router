@@ -63,7 +63,9 @@ CivicRoute is a first-level triage experiment. It does not file a complaint, dec
 | `reports` | Ten-page PDF project report |
 | `tests` | Cleaning, routing, and manual-review checks |
 
-[Read the ten-page project report](reports/CivicRoute_Service_Request_Triage_Report.pdf)
+[Read the research-style project report](reports/CivicRoute_Service_Request_Triage_Report.pdf)
+
+The report is a plain research-style document with an abstract, model design, five explained evaluation figures, limitations, governance notes, and conclusion.
 
 ## Reproduce
 
