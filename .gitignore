@@ -5,4 +5,4 @@ __pycache__/
 *.pyc
 models/*.joblib
 data/raw/*.jsonl
-data/processed/grievances.csv
+data/processed/service_requests.csv

@@ -1,8 +1,8 @@
 {
   "source_rows": 175784,
-  "rows_with_selected_labeled_departments": 38779,
+  "rows_with_selected_service_queues": 38779,
   "model_rows": 36805,
-  "departments": [
+  "service_queues": [
     "Agriculture",
     "Direct Taxes",
     "Financial Services",
@@ -12,7 +12,7 @@
     "Road Transport",
     "Telecommunications"
   ],
-  "department_counts": {
+  "service_queue_counts": {
     "Labour and Employment": 9458,
     "Financial Services": 6272,
     "Direct Taxes": 5978,

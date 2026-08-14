@@ -1,2 +1,1 @@
-"""Consumer grievance routing package."""
-
+"""CivicRoute service-request triage package."""

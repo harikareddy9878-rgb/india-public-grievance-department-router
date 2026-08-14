@@ -1,4 +1,4 @@
-"""Download and prepare the de-identified Government of India grievance corpus."""
+"""Download and prepare the de-identified CPGRAMS service-request corpus."""
 
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_URL = "https://www.kaggle.com/api/v1/datasets/download/ayushyajnik/government-of-india-grievance-report"
 SOURCE_PAGE = "https://www.kaggle.com/datasets/ayushyajnik/government-of-india-grievance-report"
-RAW_OUTPUT = ROOT / "data/raw/cpgrams_grievances.jsonl"
-MODEL_OUTPUT = ROOT / "data/processed/grievances.csv"
+RAW_OUTPUT = ROOT / "data/raw/cpgrams_service_requests.jsonl"
+MODEL_OUTPUT = ROOT / "data/processed/service_requests.csv"
 MANIFEST = ROOT / "data/raw/source_manifest.json"
 SELECTED_ORGS = {
     "DOAAC": "Agriculture",
@@ -40,7 +40,7 @@ def clean_text(value: object) -> str:
 
 
 def download() -> zipfile.ZipFile:
-    request = urllib.request.Request(SOURCE_URL, headers={"User-Agent": "HarikaGrievanceProject/2.0"})
+    request = urllib.request.Request(SOURCE_URL, headers={"User-Agent": "HarikaCivicRouteProject/2.0"})
     context = ssl.create_default_context(cafile=certifi.where())
     with urllib.request.urlopen(request, timeout=180, context=context) as response:  # noqa: S310
         return zipfile.ZipFile(io.BytesIO(response.read()))
@@ -72,9 +72,9 @@ def prepare() -> dict:
                 continue
             prepared.append(
                 {
-                    "grievance_id": record.get("registration_no"),
+                    "request_id": record.get("registration_no"),
                     "text": complaint,
-                    "department": label,
+                    "service_queue": label,
                     "org_code": org,
                     "category_code": int(code),
                     "category_description": clean_text(category.get("Description")),
@@ -85,10 +85,10 @@ def prepare() -> dict:
     frame.to_csv(MODEL_OUTPUT, index=False)
     summary = {
         "source_rows": len(raw_records),
-        "rows_with_selected_labeled_departments": len(prepared),
+        "rows_with_selected_service_queues": len(prepared),
         "model_rows": len(frame),
-        "departments": sorted(SELECTED_ORGS.values()),
-        "department_counts": frame["department"].value_counts().to_dict(),
+        "service_queues": sorted(SELECTED_ORGS.values()),
+        "service_queue_counts": frame["service_queue"].value_counts().to_dict(),
         "source": SOURCE_PAGE,
         "license": "MIT as stated on the Kaggle dataset page",
         "privacy": "The source files are explicitly named no_pii; this project does not attempt re-identification.",
