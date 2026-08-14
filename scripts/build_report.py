@@ -6,7 +6,7 @@ from pathlib import Path
 from report_template import build_research_report
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "reports/CivicRoute_Service_Request_Triage_Report.pdf"
+OUTPUT = ROOT / "reports/CivicRoute_Report.pdf"
 FIGURES = ROOT / "reports/figures"
 
 
@@ -43,6 +43,48 @@ def build_report() -> Path:
             "paragraphs": [
                 "The pipeline uses TF-IDF unigrams and bigrams with class-balanced logistic regression. The saved pipeline contains both text transformation and classification. Predictions below 0.58 confidence are not routed automatically.",
                 "A random stratified holdout measures new rows from familiar administrative categories. A harder category-group holdout keeps complete category codes out of training and is the headline generalisation test. This reduces the benefit of category-specific language shared between training and test rows.",
+            ],
+        },
+        {
+            "title": "End-to-end routing architecture",
+            "paragraphs": [
+                "The routing architecture begins with the public no-PII request file and declared category mapping. Python prepares text and service ownership, TF-IDF creates interpretable text features, and logistic regression returns one queue with a confidence score.",
+                "The confidence policy is a separate control stage. A low score does not become a forced prediction; it becomes a manual-review decision. This keeps model uncertainty visible in both the evaluation and the runtime interface.",
+            ],
+            "figure": FIGURES / "06_architecture.png",
+            "caption": "Architecture diagram. CivicRoute preparation, modelling and review-control stages.",
+            "explanation": [
+                ["Stage design", "The diagram distinguishes feature extraction, classification and the review decision instead of treating them as one model call."],
+                ["Technology", "Python, TF-IDF and logistic regression keep the route evidence inspectable and reproducible."],
+                ["Control", "Requests below the declared confidence threshold are retained for human review rather than silently assigned."],
+            ],
+        },
+        {
+            "title": "Automated routing test execution",
+            "paragraphs": [
+                "I ran the current repository test suite after revising the report. Four tests passed. The suite checks a clear railway request, strict-threshold review behaviour and required repository assets.",
+                "Eight deprecation warnings were emitted by joblib when loading arrays under NumPy 2.5. They are recorded because warnings should not be hidden, but they did not change the passing result or the evaluated predictions.",
+            ],
+            "figure": FIGURES / "07_test_execution.png",
+            "caption": "Test execution evidence. Actual CivicRoute pytest result with dependency-warning disclosure.",
+            "explanation": [
+                ["Execution", "Four tests passed and no test failed."],
+                ["Negative scenario", "A deliberately strict threshold forces manual review, verifying the safe fallback path."],
+                ["Maintenance item", "The joblib and NumPy compatibility warning should be removed in a future dependency update."],
+            ],
+        },
+        {
+            "title": "Routing evaluation dashboard",
+            "paragraphs": [
+                "The evaluation dashboard combines both holdouts, automatic coverage, confidence review and queue performance. This is important because a high accuracy value alone can hide a model that routes only easy requests or sees the same category structure during training.",
+                "The category-group holdout remains the headline scenario. It measures how the model behaves when complete category codes are absent from training and therefore provides a stricter view of generalisation.",
+            ],
+            "figure": ROOT / "evidence/routing_evaluation.png",
+            "caption": "Evaluation dashboard. CivicRoute random and unseen-category scenarios.",
+            "explanation": [
+                ["Question", "Can the system preserve accuracy while retaining uncertain requests for review?"],
+                ["Observed result", "The category-group holdout reaches 0.974 macro F1 and sends 15.2 percent of requests to review."],
+                ["Interpretation", "Coverage and accuracy are read together so the confidence threshold is not credited for predictions it declined to automate."],
             ],
         },
         {
@@ -145,13 +187,13 @@ def build_report() -> Path:
             "title": "Limitations, governance and reproducibility",
             "paragraphs": [
                 "The corpus is historical and English-dominant. Administrative taxonomies change, similar language can occur across queues, and compound requests may require multiple owners. The system does not detect urgency, malicious content, or sensitive information reliably.",
-                "The repository versions acquisition, preparation, both evaluation splits, threshold behaviour, tests, five figures, the model card, and this report. Future work should add time-based validation, independently written and multilingual requests, queue-specific thresholds, drift monitoring, emergency detection, and a secure reviewer interface.",
+                "The repository versions acquisition, preparation, both evaluation splits, threshold behaviour, tests, five figures, the model card, and this report. Future work should add time based validation, independently written and multilingual requests, queue specific thresholds, drift monitoring, emergency detection, and a secure analyst review interface.",
             ],
         },
         {
             "title": "Conclusion",
             "paragraphs": [
-                "CivicRoute demonstrates an interpretable and measurable approach to service-request triage. The central result is not the near-perfect random split; it is the deliberate use of a harder unseen-category split and a visible manual-review path. The project shows how NLP evaluation, class imbalance, confidence thresholds, privacy boundaries, and governance fit together in a student-scale system."
+                "CivicRoute provides an interpretable and measurable approach to service request triage. The central result is not the near perfect random split; it is the deliberate use of a harder unseen category split and a visible manual review path. The project shows how NLP evaluation, class imbalance, confidence thresholds, privacy boundaries, and governance fit together in a bounded system."
             ],
         },
     ]

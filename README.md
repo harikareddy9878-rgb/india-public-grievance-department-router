@@ -63,9 +63,9 @@ CivicRoute is a first-level triage experiment. It does not file a complaint, dec
 | `reports` | Ten-page PDF project report |
 | `tests` | Cleaning, routing, and manual-review checks |
 
-[Read the research-style project report](reports/CivicRoute_Service_Request_Triage_Report.pdf)
+[Read the project report](reports/CivicRoute_Report.pdf)
 
-The report is a plain research-style document with an abstract, model design, five explained evaluation figures, limitations, governance notes, and conclusion.
+The report documents source preparation, random and category-group holdouts, the confidence review policy, class-level errors and project limitations.
 
 ## Reproduce
 
@@ -80,7 +80,7 @@ pytest
 ruff check src scripts tests
 ```
 
-For an official public complaint, use [CPGRAMS](https://pgportal.gov.in/). This repository is an independent educational project.
+For an official public complaint, use [CPGRAMS](https://pgportal.gov.in/). This repository is independent and is not affiliated with CPGRAMS.
 
 ## Author
 
